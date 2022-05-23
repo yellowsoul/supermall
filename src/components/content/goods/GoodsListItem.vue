@@ -1,6 +1,6 @@
 <template>
   <div class="goods-item">
-    <img :src="goodsItem.show.img" alt="">
+    <img :src="goodsItem.show.img" alt="" @load="imageLoad">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>
@@ -18,6 +18,12 @@ export default {
       default(){
         return {}
       }
+    }
+  },
+  methods:{
+    imageLoad(){
+      //事件总线 -> 这一种方式可以解决子组件向父组件上层层传递的问题
+      this.$bus.$emit('itemImageLoad')
     }
   }
 }
