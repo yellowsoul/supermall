@@ -1,7 +1,13 @@
 <template>
   <div id="home">
     <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
-
+    <tab-control
+      v-show="isTabFixed"
+      ref="tabControl1"
+      :titles="['流行','新款','经典']"
+      class="tab-control"
+      @tabClick="tabClick"
+      />
     <scroll class="content" 
       ref="scroll" 
       :probe-type="3"
@@ -9,12 +15,14 @@
       @scroll="contentScroll"
       @pullingUp="loadMore"
     >
-      <home-swiper :banners="banners"/>
+      <home-swiper :banners="banners" @swiperImageLoad="swiperImageLoad"/>
       <recommend-view :recommends="recommends"/>
       <feature-view />
-      <tab-control class="tab-control" 
+      <tab-control
+        ref="tabControl2"
         :titles="['流行','新款','经典']" 
-        @tabClick="tabClick"/>
+        @tabClick="tabClick"
+        />
       <goodsList :goods="showGoods"/>
     </scroll>
     <!-- 正常组件是不可以直接添加事件的，但 native 可以监听组件原生事件 -->
@@ -59,15 +67,34 @@ export default {
         'sell':{page:0,list:[]}
       },
       currentType:'pop',
-      isShowBackTop:false
+      isShowBackTop:false,
+      tabOffsetTop:0,
+      isTabFixed:false,
+      saveY:0
     }
   },
+  // 计算属性
   computed:{
     //传入的初始数据 ->处理为了看着清楚
     showGoods(){
       return this.goods[this.currentType].list
     }
   },
+  //组件销毁后
+  destroyed(){
+    console.log('home destroyed')
+  },
+
+  // 进来
+  activated(){
+    this.$refs.scroll.scrollTo(0,this.saveY,0)
+    this.$refs.scroll.refresh() //防止底部导航路由切换时页面不能滚动
+  },
+  // 离开
+  deactivated(){
+    this.saveY = this.$refs.scroll.getScrollY()
+  },
+  // 组件创建完成
   created(){
     // 1.请求多个数据
     this.getHomeMultidata()
@@ -78,13 +105,17 @@ export default {
     this.getHomeGoods('sell')
 
   },
+  // 组件挂载完成
   mounted(){
-    // 3.监听商品item中图片加载完成
+    // 1.监听商品item中图片加载完成
     const refresh = debounce(this.$refs.scroll.refresh,500) //$refs拿到组件对象里的“方法”
     this.$bus.$on('itemImageLoad', () => {
       // 防抖 refresh(...args) -> 剩余参数，可传多个参数到this.$refs.scroll.refresh方法里去
       refresh() //回顾闭包 -> 因这个返回的函数里面调用了局部变量timer,所以执行过程timer不会被销毁，这就形成了闭包
     })
+
+
+
   },
   methods:{
     /**
@@ -105,6 +136,10 @@ export default {
           this.currentType = 'sell'
           break;
       }
+
+      //两个选项卡组件里面的下标保持一致
+      this.$refs.tabControl1.currentIndex = index;
+      this.$refs.tabControl2.currentIndex = index;
     },
 
     // 返回顶部
@@ -117,13 +152,25 @@ export default {
     // 监听首页滚动
     contentScroll(position){
       // console.log(Math.abs(position.y))
-      this.isShowBackTop = (-position.y) > 1000?true:false
+      // 1.判断BackTop是否显示
+      this.isShowBackTop = (-position.y) > 1000
+
+      // 2.决定tabControl是否吸顶(position:fiexd)
+      this.isTabFixed = (-position.y) > this.tabOffsetTop
     },
 
     //滚动底部加载分页
     loadMore(){
       console.log('loadMore')
       this.getHomeGoods(this.currentType)
+    },
+
+    //监听首页轮播图片加载完成
+    swiperImageLoad(){
+      // 获取tabControl的offsetTop
+      // 所有的组件都有一个属性$el：用于获取组件中的元素
+      // console.log(this.$refs.tabControl.$el.offsetTop)
+      this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop //ps:-> 其实我觉得直接把图片的父元素高度设置固定，那就可以不用这种图片加载完成再获取高度的方式了
     },
 
     /**
@@ -156,23 +203,23 @@ export default {
 <style scoped>
 #home{
   position: relative;
-  padding-top:44px;
+  /* padding-top:44px; */
   height:100vh;
 }
 .home-nav{
-  position: fixed;
+  /* position: fixed;
   top:0;
   left:0;
   right:0;
-  z-index: 9;
+  z-index: 9; */
   background-color:var(--color-tint);
   color:#fff;
 }
-.tab-control{
+/* .tab-control{
   position: sticky;
   top:44px;
   z-index: 9;
-}
+} */
 .content{
   position: absolute;
   top:44px;
@@ -180,6 +227,10 @@ export default {
   left:0;
   right:0;
   overflow: hidden;
+}
+.tab-control{
+  position: relative;
+  z-index: 9;
 }
 /* .content{
   height:calc(100% - 93px);
