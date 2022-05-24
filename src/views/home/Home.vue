@@ -7,6 +7,7 @@
       :probe-type="3"
       :pull-up-load="true"
       @scroll="contentScroll"
+      @pullingUp="loadMore"
     >
       <home-swiper :banners="banners"/>
       <recommend-view :recommends="recommends"/>
@@ -33,7 +34,7 @@ import Scroll from 'components/common/scroll/Scroll'
 import BackTop from 'components/content/backTop/BackTop'
 
 import {getHomeMultidata,getHomeGoods} from 'network/home'
-
+import {debounce} from 'common/utils'
 
 
 export default {
@@ -79,7 +80,7 @@ export default {
   },
   mounted(){
     // 3.监听商品item中图片加载完成
-    const refresh = this.debounce(this.$refs.scroll.refresh,500) //$refs拿到组件对象里的“方法”
+    const refresh = debounce(this.$refs.scroll.refresh,500) //$refs拿到组件对象里的“方法”
     this.$bus.$on('itemImageLoad', () => {
       // 防抖 refresh(...args) -> 剩余参数，可传多个参数到this.$refs.scroll.refresh方法里去
       refresh() //回顾闭包 -> 因这个返回的函数里面调用了局部变量timer,所以执行过程timer不会被销毁，这就形成了闭包
@@ -90,15 +91,7 @@ export default {
      * 事件监听相关的方法
      */
     //防抖动方法
-    debounce(func,delay){
-      let timer = null
-      return function(...args){
-        if(timer) clearTimeout(timer)
-        timer = setTimeout(() => {
-          func.apply(this,args) //利用apply可以传数组的特性
-        },delay)
-      }
-    },
+
     // 商品列表切换
     tabClick(index) {
       switch(index){
@@ -128,7 +121,10 @@ export default {
     },
 
     //滚动底部加载分页
-
+    loadMore(){
+      console.log('loadMore')
+      this.getHomeGoods(this.currentType)
+    },
 
     /**
      * 网络请求相关的方法
@@ -148,6 +144,9 @@ export default {
         // console.log(res)
         this.goods[type].list.push(...res.data.list)
         this.goods[type].page = page
+
+        // 完成上拉加载更多
+        this.$refs.scroll.finishPullUp()
       })
     }
   }
