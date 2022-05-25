@@ -23,7 +23,7 @@
         :titles="['流行','新款','经典']" 
         @tabClick="tabClick"
         />
-      <goodsList :goods="showGoods"/>
+      <goods-list :goods="showGoods"/>
     </scroll>
     <!-- 正常组件是不可以直接添加事件的，但 native 可以监听组件原生事件 -->
     <back-top @click.native="backClick" v-show="isShowBackTop"/>
@@ -98,7 +98,7 @@ export default {
   created(){
     // 1.请求多个数据
     this.getHomeMultidata()
-
+    
     // 2.请求商品数据
     this.getHomeGoods('pop')
     this.getHomeGoods('new')

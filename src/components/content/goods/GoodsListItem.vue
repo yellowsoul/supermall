@@ -1,5 +1,5 @@
 <template>
-  <div class="goods-item">
+  <div class="goods-item" @click="itemClick">
     <img :src="goodsItem.show.img" alt="" @load="imageLoad">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
@@ -24,6 +24,10 @@ export default {
     imageLoad(){
       //事件总线 -> 这一种方式可以解决子组件向父组件上层层传递的问题
       this.$bus.$emit('itemImageLoad')
+    },
+    //跳转详情
+    itemClick(){
+      this.$router.push('/detail/' + this.goodsItem.iid)
     }
   }
 }
