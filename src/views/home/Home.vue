@@ -85,12 +85,12 @@ export default {
     console.log('home destroyed')
   },
 
-  // 进来
+  // keep-alive 时可以使用钩子 -> 进来设置位置
   activated(){
     this.$refs.scroll.scrollTo(0,this.saveY,0)
     this.$refs.scroll.refresh() //防止底部导航路由切换时页面不能滚动
   },
-  // 离开
+  // 离开记录位置
   deactivated(){
     this.saveY = this.$refs.scroll.getScrollY()
   },
