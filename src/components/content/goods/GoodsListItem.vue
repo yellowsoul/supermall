@@ -1,6 +1,6 @@
 <template>
   <div class="goods-item" @click="itemClick">
-    <img :src="goodsItem.show.img" alt="" @load="imageLoad">
+    <img :src="showImage" alt="" @load="imageLoad">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>
@@ -20,10 +20,22 @@ export default {
       }
     }
   },
+  computed:{
+    showImage(){
+      return this.goodsItem.image || this.goodsItem.show.img // 1.详情推荐商品 || 2.普通商品
+    }
+  },
   methods:{
     imageLoad(){
       //事件总线 -> 这一种方式可以解决子组件向父组件上层层传递的问题
       this.$bus.$emit('itemImageLoad')
+      
+      // 判断各自路由发送事件
+      // if(this.$route.path.indexOf('/home')){ 
+      //   this.$bus.$emit('homeItemImageLoad')
+      // }else if(this.$route.path.indexOf('/detail')){
+      //   this.$bus.$emit('detailItemImageLoad')
+      // }
     },
     //跳转详情
     itemClick(){

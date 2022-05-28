@@ -42,8 +42,8 @@ import Scroll from 'components/common/scroll/Scroll'
 import BackTop from 'components/content/backTop/BackTop'
 
 import {getHomeMultidata,getHomeGoods} from 'network/home'
-import {debounce} from 'common/utils'
-
+// import {debounce} from 'common/utils'
+import {itemListenerMixin} from 'common/mixin'
 
 export default {
   name:'Home',
@@ -57,6 +57,7 @@ export default {
     Scroll,
     BackTop
   },
+  mixins:[itemListenerMixin],
   data(){
     return{
       banners:[],
@@ -71,6 +72,7 @@ export default {
       tabOffsetTop:0,
       isTabFixed:false,
       saveY:0
+      
     }
   },
   // 计算属性
@@ -85,14 +87,19 @@ export default {
     console.log('home destroyed')
   },
 
-  // keep-alive 时可以使用钩子 -> 进来设置位置
+  // keep-alive 时可以使用钩子函数（activated / deactivated）
   activated(){
+    // 进来设置位置
     this.$refs.scroll.scrollTo(0,this.saveY,0)
     this.$refs.scroll.refresh() //防止底部导航路由切换时页面不能滚动
   },
-  // 离开记录位置
+  
   deactivated(){
+    // 1.离开记录位置
     this.saveY = this.$refs.scroll.getScrollY()
+
+    //2.取消全局事件的监听 -> 必须传入对应的函数，否则会取消全部监听
+    this.$bus.$off('itemImgLoad',this.itemImgListener )
   },
   // 组件创建完成
   created(){
@@ -107,14 +114,21 @@ export default {
   },
   // 组件挂载完成
   mounted(){
-    // 1.监听商品item中图片加载完成
-    const refresh = debounce(this.$refs.scroll.refresh,500) //$refs拿到组件对象里的“方法”
-    this.$bus.$on('itemImageLoad', () => {
-      // 防抖 refresh(...args) -> 剩余参数，可传多个参数到this.$refs.scroll.refresh方法里去
-      refresh() //回顾闭包 -> 因这个返回的函数里面调用了局部变量timer,所以执行过程timer不会被销毁，这就形成了闭包
-    })
+    /**
+     * 注释：代码想要复用就可以通过 -> mixins混入
+     * 1.一样的包含选项，他们将在Vue.extend()里最终选择使用相同的选项合并逻辑合并。
+     * 2.举例：如果你的混入包含一个钩子而创建组件本身也有一个，两个函数将被调用。
+     * */
 
+    // // 1.监听商品item中图片加载完成
+    // const refresh = debounce(this.$refs.scroll.refresh,500) //$refs拿到组件对象里的“方法”
 
+    // // 对监听的事件进行保存 -> 因为很多组件要用到全局$bus商品图加载这个函数，而我们离开页面时要给对应的页面取消监听，$bus.$off(''),为了要传入对应函数名
+    // this.itemImgListener =  () => {
+    //   // 防抖 refresh(...args) -> 剩余参数，可传多个参数到this.$refs.scroll.refresh方法里去
+    //   refresh() //回顾闭包 -> 因这个返回的函数里面调用了局部变量timer,所以执行过程timer不会被销毁，这就形成了闭包
+    // }
+    // this.$bus.$on('itemImageLoad',this.itemImgListener)
 
   },
   methods:{
