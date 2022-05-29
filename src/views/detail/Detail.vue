@@ -116,8 +116,10 @@ export default {
   },
 
   methods: {
+    // 商品详情图片介绍加载重新获取滚动高度 this.refresh ->  mixins:[itemListenerMixin],
     imageLoad(){
-      this.$refs.scroll.scroll.refresh()
+      this.refresh() // 防抖
+      // this.$refs.scroll.refresh()
     }
   },
 }
