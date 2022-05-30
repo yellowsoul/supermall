@@ -1,14 +1,22 @@
 <template>
   <div id="detail">
-    <detail-nav-bar class="detail-nav"/>
-    <scroll class="content" ref="scroll">
-      <detail-swiper :topImages="topImages"/>
+    <detail-nav-bar class="detail-nav" 
+      @titleClick="titleClick"
+      ref="titleBar"
+    />
+    <scroll class="content" 
+      ref="scroll" 
+      :probe-type="3" 
+      @scroll="contentScroll"
+    >
+      <!-- 属性：topImages 传入值：top-images -->
+      <detail-swiper :top-images="topImages"/>
       <detail-base-info :goods="goods"/>
       <detail-shop-info :shop="shop"/>
-      <detail-goods-info :detailInfo="detailInfo" @detailImageLoad="detailImageLoad"/>
-      <detail-param-info :paramInfo="paramInfo"/>
-      <detail-comment-info :commentInfo="commentInfo"/>
-      <goods-list :goods="recommends"/>
+      <detail-goods-info :detail-info="detailInfo" @detailImageLoad="detailImageLoad"/>
+      <detail-param-info ref="param" :param-info="paramInfo"/>
+      <detail-comment-info ref="comment" :comment-info="commentInfo"/>
+      <goods-list ref="recommend" :goods="recommends"/>
     </scroll>
     
   </div>
@@ -27,7 +35,7 @@ import Scroll from 'components/common/scroll/Scroll'
 import GoodsList from 'components/content/goods/GoodsList'
 
 import {getDetail, Goods, Shop, GoodsParam, getRecommend} from 'network/detail'
-// import {debounce} from "common/utils";
+import {debounce} from "common/utils";
 import {itemListenerMixin} from "common/mixin"
 
 export default {
@@ -54,7 +62,12 @@ export default {
       detailInfo:{},
       paramInfo:{},
       commentInfo:{},
-      recommends:[]
+      recommends:[],
+
+      themeTopYs:[],
+      getThemeTopY:null,
+
+      currentIndex:0
     }
   },
   created(){
@@ -84,12 +97,45 @@ export default {
       if (data.rate.list) {
         this.commentInfo = data.rate.list[0];
       }
+
+      /*【联动效果-获取顶部距离】
+      //  1.第一次获取：值不对，this.$refs.param.$el压根没有渲染
+      //  学习过程中你可能认为这段代码可以放在“mounted”钩子函数中获取，
+      //  但经过测试在获取的过程中“themeTopYs”数组中存在undefind,
+      //  原因是组件数据经过判断， v-if="Object.keys(paramInfo).length !== 0"，说明异步数据请求还未完全返回，
+      //  问：至此现在我们在这步已经确定赋值完数据之后，再去直接拿元素距离顶部高度为何还是拿不到？ 
+      //  答：因为拿到数据后需要时间渲染完成才能更新dom，所以面对这种情况我们可以使用函数this.$nextTick()； -> 保证渲染完成后
+
+      this.$nextTick(() => {
+        // 2.第二次获取：值不对，图片没有计算在内
+        // 根据最新的数据，对应的DOM是已经被 渲染出来了
+        // 但是图片依然是没有加载完的(目前获取到的offsetTop不包含其中的图片的)
+        // offsetTop值不对的时候一般情况下都是因为图片的问题
+        this.themeTopYs = []
+        this.themeTopYs.push(0);
+        this.themeTopYs.push(this.$refs.param.$el.offsetTop);
+        this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
+        this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+        console.log(this.themeTopYs)
+      })
+      */
     })
 
     // 3.请求推荐数据
     getRecommend().then( res => {
       this.recommends = res.data.list
     })
+
+    // 4.【联动效果-获取顶部距离】给getThemeTopY赋值(给this.themeTopYs赋值的操作进行防抖)
+    this.getThemeTopY = debounce(() => { //此时只是函数赋值还未执行，这段代码将在“detailImageLoad”图片加载中执行
+      this.themeTopYs = []
+      this.themeTopYs.push(0);
+      this.themeTopYs.push(this.$refs.param.$el.offsetTop);
+      this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
+      this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+
+      console.log(this.themeTopYs)
+    },100)
   },
   
   mounted(){
@@ -108,8 +154,12 @@ export default {
     //   refresh() //回顾闭包 -> 因这个返回的函数里面调用了局部变量timer,所以执行过程timer不会被销毁，这就形成了闭包
     // }
     // this.$bus.$on('itemImageLoad',this.itemImgListener)
+
   },
 
+  updated(){
+    // 【联动效果-获取顶部距离】this.themeTopYs = [] 也可以在这里获取元素距离顶部的高，不过此钩子函数只要数据变化就会被频繁调用。此场景中就不大推荐使用了。
+  },
   destroyed(){
     //2.离开时 全局事件的监听 -> 取消对应的监听函数
     this.$bus.$off('itemImageLoad',this.itemImgListener)
@@ -120,6 +170,59 @@ export default {
     detailImageLoad(){
       this.refresh() // 防抖
       // this.$refs.scroll.refresh()
+
+      // 【联动效果-获取顶部距离】在“created”数据赋值时使用this.$nextTick()函数 -> 渲染DOM后获取的高度依然是没有把图片没有计算在内，所以把这段代码放在这里获取
+      this.getThemeTopY()
+    },
+
+    // 【联动效果-点击滚动对应位置】
+    titleClick(index){
+      console.log(-this.themeTopYs[index])
+      this.$refs.scroll.scrollTo(0, -this.themeTopYs[index],200);
+    },
+    // 【联动效果-滚动对应位置导航文字高亮】
+    contentScroll(position){
+      // 1.获取y值
+      const positionY = -position.y
+      // 2.positionY和主题中的值进行对比
+      // [0, 6235, 7037, 7253]
+
+      // positionY 在 0 和 6235之间，index = 0
+      // positionY 在 6235 和 7037之间，index = 1
+      // positionY 在 7037 和 7253之间，index = 2
+
+      // positionY 超过 7253时，index = 3
+
+      let length = this.themeTopYs.length
+      for(let i = 0; i < this.themeTopYs.length; i++){
+        // if(positionY > this.themeTopYs[i] && positionY < this.themeTopYs[i+1]){
+        //   this.$refs.titleBar.currentIndex = i
+        // }
+        if(
+          this.currentIndex !==i && //排除自己，进行下步判断 ->
+          (
+            (i<length-1 && positionY >= this.themeTopYs[i] && positionY < this.themeTopYs[i+1]) || 
+            (i === length-1 && positionY >= this.themeTopYs[i])
+          )
+        ){
+
+          // if(this.currentIndex != i){ //节流
+            this.$refs.titleBar.currentIndex = i
+            this.currentIndex = i
+            console.log(this.currentIndex)
+          // }
+        }
+      }
+
+      /* 我的写法
+      for(let i = 0; i < this.themeTopYs.length; i++){
+        if(positionY >= this.themeTopYs[i] && positionY < this.themeTopYs[i+1]){
+          this.$refs.titleBar.currentIndex = i
+        }else if(positionY >= this.themeTopYs[i]){//给最后一个i单独赋值
+          this.$refs.titleBar.currentIndex = i
+        }
+      }
+      */
     }
   },
 }

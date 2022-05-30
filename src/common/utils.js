@@ -1,5 +1,5 @@
 //封装公用防抖函数方法
-export function debounce(func,delay){
+export function debounce(func,delay=50){
   let timer = null
   return function(...args){
     if(timer) clearTimeout(timer)

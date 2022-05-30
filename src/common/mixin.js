@@ -18,6 +18,6 @@ export const itemListenerMixin = {
       this.refresh() //回顾闭包 -> 因这个返回的函数里面调用了局部变量timer,所以执行过程timer不会被销毁，这就形成了闭包
     }
     this.$bus.$on('itemImageLoad',this.itemImgListener)
-    console.log('minxin -> 是我混入内容')
+    // console.log('minxin -> 是我混入内容')
   }
 }
