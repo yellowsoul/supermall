@@ -133,6 +133,7 @@ export default {
       this.themeTopYs.push(this.$refs.param.$el.offsetTop);
       this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
       this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+      this.themeTopYs.push(Number.MAX_VALUE)
 
       console.log(this.themeTopYs)
     },100)
@@ -184,22 +185,29 @@ export default {
     contentScroll(position){
       // 1.获取y值
       const positionY = -position.y
+
       // 2.positionY和主题中的值进行对比
-      // [0, 6235, 7037, 7253]
+      // [0, 6235, 7037, 7253，Number.MAX_VALUE]
+      // console.log(Number.MAX_VALUE);
 
       // positionY 在 0 和 6235之间，index = 0
       // positionY 在 6235 和 7037之间，index = 1
       // positionY 在 7037 和 7253之间，index = 2
+      // (1)positionY 超过 7253时，index = 3
 
-      // positionY 超过 7253时，index = 3
+      // (2)positionY 大于等于 7253 值，index = 3
+
+
 
       let length = this.themeTopYs.length
-      for(let i = 0; i < this.themeTopYs.length; i++){
+      for(let i = 0; i < length-1; i++){
         // if(positionY > this.themeTopYs[i] && positionY < this.themeTopYs[i+1]){
         //   this.$refs.titleBar.currentIndex = i
         // }
+
+        /*课堂1普通写法：
         if(
-          this.currentIndex !==i && //排除自己，进行下步判断 ->
+          this.currentIndex !==i && //排除自己，进行下步判断 -> 防止赋值过于频繁
           (
             (i<length-1 && positionY >= this.themeTopYs[i] && positionY < this.themeTopYs[i+1]) || 
             (i === length-1 && positionY >= this.themeTopYs[i])
@@ -212,17 +220,30 @@ export default {
             console.log(this.currentIndex)
           // }
         }
-      }
+        */
 
-      /* 我的写法
-      for(let i = 0; i < this.themeTopYs.length; i++){
-        if(positionY >= this.themeTopYs[i] && positionY < this.themeTopYs[i+1]){
-          this.$refs.titleBar.currentIndex = i
-        }else if(positionY >= this.themeTopYs[i]){//给最后一个i单独赋值
-          this.$refs.titleBar.currentIndex = i
+        //课堂2优化写法：hack(用空间换时间的概念)
+        if(
+          this.currentIndex !==i && //防止赋值过于频繁
+          (positionY >= this.themeTopYs[i] && positionY < this.themeTopYs[i+1])
+        ){
+            this.$refs.titleBar.currentIndex = i
+            this.currentIndex = i
+            console.log(this.currentIndex)
         }
+        
       }
-      */
+      
+
+      // 我的优化写法
+      // for(let i = 0; i < this.themeTopYs.length; i++){
+      //   if(positionY >= this.themeTopYs[i] && positionY < this.themeTopYs[i+1]){
+      //     this.$refs.titleBar.currentIndex = i
+      //   }else if(positionY >= this.themeTopYs[i]){//给最后一个i单独赋值
+      //     this.$refs.titleBar.currentIndex = i
+      //   }
+      // }
+      
     }
   },
 }
