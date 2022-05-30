@@ -5,7 +5,7 @@
       <detail-swiper :topImages="topImages"/>
       <detail-base-info :goods="goods"/>
       <detail-shop-info :shop="shop"/>
-      <detail-goods-info :detailInfo="detailInfo" @imageLoad="imageLoad"/>
+      <detail-goods-info :detailInfo="detailInfo" @detailImageLoad="detailImageLoad"/>
       <detail-param-info :paramInfo="paramInfo"/>
       <detail-comment-info :commentInfo="commentInfo"/>
       <goods-list :goods="recommends"/>
@@ -117,7 +117,7 @@ export default {
 
   methods: {
     // 商品详情图片介绍加载重新获取滚动高度 this.refresh ->  mixins:[itemListenerMixin],
-    imageLoad(){
+    detailImageLoad(){
       this.refresh() // 防抖
       // this.$refs.scroll.refresh()
     }

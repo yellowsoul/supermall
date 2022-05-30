@@ -4,7 +4,7 @@ export const itemListenerMixin = {
   data(){
     return{
       itemImgListener:null,
-      refresh:null //因为详情图片加载也需要用到防抖功能，所以把此变量存为全局，之后只要组件有加载图片直接调用全局混入的this.refresh -> 执行组件内每张图片加载后重新获取滚动高度问题
+      refresh:null // 因为详情图片加载也需要用到防抖功能，所以把此变量存为全局，之后只要组件有加载图片直接对应使用mixins混入执行调用this.refresh -> 解决组件内每张图片因加载延迟问题需重新获取滚动高度问题
     }
     
   },

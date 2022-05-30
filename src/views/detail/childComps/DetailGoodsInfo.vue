@@ -31,7 +31,7 @@
     },
     methods: {
 	    imgLoad() {
-	        this.$emit('imageLoad')
+	        this.$emit('detailImageLoad')
 	    }
     },
 	}
