@@ -39,11 +39,12 @@ import NavBar from 'components/common/navbar/NavBar'
 import TabControl from 'components/content/tabControl/TabControl'
 import GoodsList from 'components/content/goods/GoodsList'
 import Scroll from 'components/common/scroll/Scroll'
-import BackTop from 'components/content/backTop/BackTop'
+// import BackTop from 'components/content/backTop/BackTop'  -> backTop封装mixins混入
 
 import {getHomeMultidata,getHomeGoods} from 'network/home'
-// import {debounce} from 'common/utils'
-import {itemListenerMixin} from 'common/mixin'
+import {TOP_DISTANCE} from 'common/const' // 使用常量
+// import {debounce} from 'common/utils' -> mixins混入
+import {itemListenerMixin,backTopMixin} from 'common/mixin' //混入公用 -> 1.商品图片监听 2.backTop回到顶部,
 
 export default {
   name:'Home',
@@ -54,10 +55,10 @@ export default {
     NavBar,
     TabControl,
     GoodsList,
-    Scroll,
-    BackTop
+    Scroll
+    // BackTop -> backTop封装mixins混入
   },
-  mixins:[itemListenerMixin],
+  mixins:[itemListenerMixin,backTopMixin],
   data(){
     return{
       banners:[],
@@ -68,7 +69,7 @@ export default {
         'sell':{page:0,list:[]}
       },
       currentType:'pop',
-      isShowBackTop:false,
+      // isShowBackTop:false, -> backTop封装mixins混入
       tabOffsetTop:0,
       isTabFixed:false,
       saveY:0
@@ -156,18 +157,18 @@ export default {
       this.$refs.tabControl2.currentIndex = index;
     },
 
-    // 返回顶部
-    backClick(){
-      //$refs拿到组件对象里的“data属性”或“访问方法”
-      // this.$refs.scroll.scroll.scrollTo(0,0,500)
-      this.$refs.scroll.scrollTo(0, 0, 500)
-    },
+    // // 返回顶部  -> backTop封装mixins混入
+    // backClick(){
+    //   //$refs拿到组件对象里的“data属性”或“访问方法”
+    //   // this.$refs.scroll.scroll.scrollTo(0,0,500)
+    //   this.$refs.scroll.scrollTo(0, 0, 500)
+    // },
 
     // 监听首页滚动
     contentScroll(position){
       // console.log(Math.abs(position.y))
       // 1.判断BackTop是否显示
-      this.isShowBackTop = (-position.y) > 1000
+      this.isShowBackTop = (-position.y) > TOP_DISTANCE
 
       // 2.决定tabControl是否吸顶(position:fiexd)
       this.isTabFixed = (-position.y) > this.tabOffsetTop

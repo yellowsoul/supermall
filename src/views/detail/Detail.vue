@@ -18,7 +18,9 @@
       <detail-comment-info ref="comment" :comment-info="commentInfo"/>
       <goods-list ref="recommend" :goods="recommends"/>
     </scroll>
-    
+    <detail-bottom-bar/>
+    <!-- 正常组件是不可以直接添加事件的，但 native 可以监听组件原生事件 -->
+    <back-top @click.native="backClick" v-show="isShowBackTop"/>
   </div>
 </template>
 
@@ -30,13 +32,16 @@ import DetailShopInfo from './childComps/DetailShopInfo'
 import DetailGoodsInfo from './childComps/DetailGoodsInfo'
 import DetailParamInfo from './childComps/DetailParamInfo.vue'
 import DetailCommentInfo from './childComps/DetailCommentInfo'
+import DetailBottomBar from './childComps/DetailBottomBar'
 
 import Scroll from 'components/common/scroll/Scroll'
 import GoodsList from 'components/content/goods/GoodsList'
 
 import {getDetail, Goods, Shop, GoodsParam, getRecommend} from 'network/detail'
+import {TOP_DISTANCE} from 'common/const' // 使用常量
+
 import {debounce} from "common/utils";
-import {itemListenerMixin} from "common/mixin"
+import {itemListenerMixin, backTopMixin} from "common/mixin" // 混入公用 -> 1.商品图片监听 2.backTop回到顶部,
 
 export default {
   name:"Detail",
@@ -48,11 +53,13 @@ export default {
     DetailGoodsInfo,
     DetailParamInfo,
     DetailCommentInfo,
+    DetailBottomBar,
+
 
     Scroll,
     GoodsList
   },
-  mixins:[itemListenerMixin],
+  mixins:[itemListenerMixin, backTopMixin],
   data () {
     return {
       iid:null,
@@ -234,7 +241,8 @@ export default {
         
       }
       
-
+      // 1.判断BackTop是否显示
+      this.isShowBackTop = (-position.y) > TOP_DISTANCE
       // 我的优化写法
       // for(let i = 0; i < this.themeTopYs.length; i++){
       //   if(positionY >= this.themeTopYs[i] && positionY < this.themeTopYs[i+1]){
@@ -262,6 +270,6 @@ export default {
   background-color:#fff;
 }
 .content{
-  height:calc(100% - 44px);
+  height:calc(100% - 44px - 58px);
 }
 </style>

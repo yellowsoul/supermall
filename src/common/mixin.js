@@ -1,4 +1,5 @@
 import { debounce } from "./utils"
+import BackTop from 'components/content/backTop/BackTop' 
 // 首页和详情页商品图片监听,全局事件$bus和局部mixin的使用
 export const itemListenerMixin = {
   data(){
@@ -20,4 +21,37 @@ export const itemListenerMixin = {
     this.$bus.$on('itemImageLoad',this.itemImgListener)
     // console.log('minxin -> 是我混入内容')
   }
+}
+
+
+//backTop的混入封装
+export const backTopMixin = {
+  components:{
+    BackTop
+  },
+  data(){
+    return{
+      isShowBackTop:false,
+    }
+  },
+  methods:{
+    // 返回顶部
+    backClick(){
+      //$refs拿到组件对象里的“data属性”或“访问方法”
+      // this.$refs.scroll.scroll.scrollTo(0,0,500)
+      this.$refs.scroll.scrollTo(0, 0, 500)
+    },
+
+    // 监听首页滚动 -> 这个时候你可能想到这个函数是否也可以合并，但很遗憾不能这么做，除了生命周期之外，methods方法里只会合并同级函数，它会直接把函数内部的东西覆盖。
+    // contentScroll(position){
+    //   // console.log(Math.abs(position.y))
+    //   // 1.判断BackTop是否显示
+    //   this.isShowBackTop = (-position.y) > TOP_DISTANCE
+
+    //   // 2.决定tabControl是否吸顶(position:fiexd)
+    //   this.isTabFixed = (-position.y) > this.tabOffsetTop
+    // },
+
+  }
+
 }
