@@ -18,7 +18,7 @@
       <detail-comment-info ref="comment" :comment-info="commentInfo"/>
       <goods-list ref="recommend" :goods="recommends"/>
     </scroll>
-    <detail-bottom-bar/>
+    <detail-bottom-bar @addToCart="addToCart"/>
     <!-- 正常组件是不可以直接添加事件的，但 native 可以监听组件原生事件 -->
     <back-top @click.native="backClick" v-show="isShowBackTop"/>
   </div>
@@ -142,7 +142,7 @@ export default {
       this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
       this.themeTopYs.push(Number.MAX_VALUE)
 
-      console.log(this.themeTopYs)
+      // console.log(this.themeTopYs)
     },100)
   },
   
@@ -252,7 +252,22 @@ export default {
       //   }
       // }
       
-    }
+    },
+
+    // 添加购物车
+    addToCart(){
+      // 1.获取购物车需要展示的信息
+      const product = {}
+      product.image = this.topImages[0];
+      product.title = this.goods.title;
+      product.desc = this.goods.desc;
+      product.price = this.goods.realPrice;
+      product.iid = this.iid;
+
+      //2. Vuex通过mutations向state提交数据
+      this.$store.commit('addToCart',product)
+      console.log(this.$store.state.cartList)
+    },
   },
 }
 </script>
