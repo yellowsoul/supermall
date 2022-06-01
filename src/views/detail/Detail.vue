@@ -264,8 +264,10 @@ export default {
       product.price = this.goods.realPrice;
       product.iid = this.iid;
 
-      //2. Vuex通过mutations向state提交数据
-      this.$store.commit('addToCart',product)
+      // 2. Vuex通过mutations向state提交数据
+      // this.$store.commit('addToCart',product)
+      // 2. Vuex 因方法比较复杂，所以先通过action(处理异步、复杂) -> 再Mutation(官方推荐单一事件) -> 最后state
+      this.$store.dispatch('addCart',product)
       console.log(this.$store.state.cartList)
     },
   },
