@@ -111,7 +111,6 @@ export default {
     this.getHomeGoods('pop')
     this.getHomeGoods('new')
     this.getHomeGoods('sell')
-
   },
   // 组件挂载完成
   mounted(){
