@@ -1,9 +1,13 @@
 <template>
   <div class="bottom-bar">
-    <check-button class="select-all" />
+    <check-button 
+      :is-checked="isSelectAll" 
+      class="select-all" 
+      @click.native="clickSelectAll"
+    />
     <span>全选</span>
     <span class="total-price">合计: ¥{{totalPrice}}</span>
-    <span class="buy-product">去结算({{cartLength}})</span>
+    <span class="buy-product" @click="calcClick">去结算({{cartLength}})</span>
   </div>
 </template>
 
@@ -16,7 +20,8 @@ export default {
   },
   name:"CartBottomBar",
   data () {
-    return {}
+    return {
+    }
   },
   computed: {
     ...mapGetters(['cartList']),
@@ -29,9 +34,42 @@ export default {
     },
     cartLength(){
       return this.cartList.filter(item => item.checked).length
+    },
+
+    isSelectAll(){
+      if(this.cartList.length === 0) return false
+
+      // 1.使用filter
+      // return !this.cartList.filter(item => !item.checked).length
+
+      // 2.使用find
+      return !this.cartList.find(item => !item.checked)
+
+      // 3.普通遍历
+      // for(let item of this.cartList){
+      //   if(!item.checked){
+      //     return false
+      //   }
+      // }
+      // return true
     }
   },
-  methods: {},
+  methods: {
+    clickSelectAll(){
+      if(this.isSelectAll){ // 全部选中
+        this.cartList.forEach(item => item.checked = false);
+      }else{ // 部分或全部不选中
+        this.cartList.forEach(item => item.checked = true);
+      }
+      
+    },
+
+    calcClick() {
+      if(!this.isSelectAll) {
+        this.$toast.show('请选择购买的商品')
+      }
+    }
+  },
 }
 </script>
 

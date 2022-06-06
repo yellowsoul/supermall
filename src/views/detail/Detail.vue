@@ -21,6 +21,8 @@
     <detail-bottom-bar @addToCart="addToCart"/>
     <!-- 正常组件是不可以直接添加事件的，但 native 可以监听组件原生事件 -->
     <back-top @click.native="backClick" v-show="isShowBackTop"/>
+
+    <!-- <toast :message="message" :show="show"/> -->
   </div>
 </template>
 
@@ -39,9 +41,12 @@ import GoodsList from 'components/content/goods/GoodsList'
 
 import {getDetail, Goods, Shop, GoodsParam, getRecommend} from 'network/detail'
 import {TOP_DISTANCE} from 'common/const' // 使用常量
+// import Toast from 'components/common/toast/Toast'
 
 import {debounce} from "common/utils";
 import {itemListenerMixin, backTopMixin} from "common/mixin" // 混入公用 -> 1.商品图片监听 2.backTop回到顶部,
+
+import { mapActions } from 'vuex' // vuex里的actions也可以映射到methods里面
 
 export default {
   name:"Detail",
@@ -57,7 +62,8 @@ export default {
 
 
     Scroll,
-    GoodsList
+    GoodsList,
+    // Toast
   },
   mixins:[itemListenerMixin, backTopMixin],
   data () {
@@ -74,7 +80,10 @@ export default {
       themeTopYs:[],
       getThemeTopY:null,
 
-      currentIndex:0
+      currentIndex:0,
+
+      // message:'',
+      // show:false
     }
   },
   created(){
@@ -174,6 +183,9 @@ export default {
   },
 
   methods: {
+    // Vuex actions映射到methods
+    ...mapActions(['addCart']),
+
     // 商品详情图片介绍加载重新获取滚动高度 this.refresh ->  mixins:[itemListenerMixin],
     detailImageLoad(){
       this.refresh() // 防抖
@@ -264,11 +276,32 @@ export default {
       product.price = this.goods.realPrice;
       product.iid = this.iid;
 
-      // 2. Vuex通过mutations向state提交数据
-      // this.$store.commit('addToCart',product)
-      // 2. Vuex 因方法比较复杂，所以先通过action(处理异步、复杂) -> 再Mutation(官方推荐单一事件) -> 最后state
-      this.$store.dispatch('addCart',product)
+      /*
+      Vuex通过mutations向state提交数据
+      this.$store.commit('addToCart',product)
+      Vuex 因方法比较复杂，所以先通过action(处理异步、复杂) -> 再Mutation(官方推荐单一事件) -> 最后state
+      */
+
+      // 2.将商品添加到购物车里 -> 掌握(1.Promise 2.mapAction)
+      // this.$store.dispatch('addCart',product).then(res => {
+      //   console.log(res)
+      // })
+
+      // 新知识点，Vuex返回Promise和mapActions的映射
+      this.addCart(product).then(res => { 
+
+        // this.message = res
+        // this.show = true
+        // setTimeout(() =>{
+        //   this.show = false
+        // },1500)
+
+        this.$toast.show(res,2000)
+        console.log(this.$toast)
+      })
+
       console.log(this.$store.state.cartList)
+
     },
   },
 }
