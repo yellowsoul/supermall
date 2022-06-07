@@ -1,8 +1,8 @@
 <template>
   <div class="goods-item" @click="itemClick">
     <!-- <img :src="showImage" alt="" @load="imageLoad"> -->
-    <!-- img中使用图片懒加载， v-lazy代替:src -->
-    <img v-lazy="showImage" alt="" @load="imageLoad">
+    <!-- img中使用图片懒加载， v-lazy代替:src 且必须绑定:key，解决图片更新问题-->
+    <img v-lazy="showImage" :key="showImage" alt="" @load="imageLoad">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>
